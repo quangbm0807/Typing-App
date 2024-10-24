@@ -1,26 +1,20 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Layout } from 'antd';
+import TypingChallenge from './TypingTest/TypingChallenge';
 
-function App() {
+const { Header, Content } = Layout;
+
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Layout>
+      <Header style={{ color: 'white', textAlign: 'center' }}>
+        <h1>Ứng dụng Gõ Phím - Chế độ Thử Thách</h1>
+      </Header>
+      <Content style={{ padding: '50px' }}>
+        <TypingChallenge />
+      </Content>
+    </Layout>
   );
-}
+};
 
 export default App;
