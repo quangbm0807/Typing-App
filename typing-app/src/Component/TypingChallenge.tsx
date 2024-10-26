@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button, Select, Typography, Space, Input, Progress, Tooltip } from 'antd';
 import type { InputRef } from 'antd';
 import { Word, WordStat, Language } from './types';
-import { WORD_BANKS, GAME_DURATION, VISIBLE_WORDS_AHEAD, VISIBLE_WORDS_BEHIND, WORDS_BUFFER_THRESHOLD, WORDS_BATCH_SIZE } from './constants';
+import { WORD_BANKS, VISIBLE_WORDS_AHEAD, VISIBLE_WORDS_BEHIND, WORDS_BUFFER_THRESHOLD, WORDS_BATCH_SIZE } from './constants';
 import Statistics from './Statistics';
 import {
     Container,
@@ -16,13 +16,21 @@ import {
 const { Title, Text } = Typography;
 const { Option } = Select;
 
+const DURATION_OPTIONS = [
+    { value: 15, label: '15 giây' },
+    { value: 30, label: '30 giây' },
+    { value: 45, label: '45 giây' },
+    { value: 60, label: '60 giây' },
+];
+
 const TypingChallenge: React.FC = () => {
     const [language, setLanguage] = useState<Language>('vietnamese');
     const [words, setWords] = useState<Word[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [input, setInput] = useState('');
     const [isRunning, setIsRunning] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
+    const [selectedDuration, setSelectedDuration] = useState(60);
+    const [timeLeft, setTimeLeft] = useState(selectedDuration);
     const [hasStartedTyping, setHasStartedTyping] = useState(false);
     const [correctWords, setCorrectWords] = useState(0);
     const [incorrectWords, setIncorrectWords] = useState(0);
@@ -49,7 +57,7 @@ const TypingChallenge: React.FC = () => {
         setCurrentIndex(0);
         setInput('');
         setIsRunning(true);
-        setTimeLeft(GAME_DURATION);
+        setTimeLeft(selectedDuration);
         setHasStartedTyping(false);
         setCorrectWords(0);
         setIncorrectWords(0);
@@ -95,7 +103,6 @@ const TypingChallenge: React.FC = () => {
                 const newWords = [...prev];
                 newWords[currentIndex].status = isCorrect ? 'correct' : 'incorrect';
 
-                // Add more words if needed
                 if (currentIndex >= newWords.length - WORDS_BUFFER_THRESHOLD) {
                     newWords.push(...generateMoreWords());
                 }
@@ -154,7 +161,7 @@ const TypingChallenge: React.FC = () => {
         ? Math.round((correctWords / (correctWords + incorrectWords)) * 100)
         : 0;
 
-    const wpm = Math.round((correctWords / ((GAME_DURATION - timeLeft) || 1)) * 60);
+    const wpm = Math.round((correctWords / ((selectedDuration - timeLeft) || 1)) * 60);
 
     return (
         <Container>
@@ -171,6 +178,18 @@ const TypingChallenge: React.FC = () => {
                             <Option value="vietnamese">Tiếng Việt</Option>
                             <Option value="english">English</Option>
                         </Select>
+                        <Select
+                            value={selectedDuration}
+                            onChange={(value: number) => setSelectedDuration(value)}
+                            style={{ width: 120 }}
+                            disabled={isRunning}
+                        >
+                            {DURATION_OPTIONS.map(option => (
+                                <Option key={option.value} value={option.value}>
+                                    {option.label}
+                                </Option>
+                            ))}
+                        </Select>
                         <Button type="primary" onClick={startGame} disabled={isRunning}>
                             {isRunning ? 'Đang chạy...' : 'Bắt đầu'}
                         </Button>
@@ -178,7 +197,7 @@ const TypingChallenge: React.FC = () => {
                 </div>
 
                 <Progress
-                    percent={Math.round((timeLeft / GAME_DURATION) * 100)}
+                    percent={Math.round((timeLeft / selectedDuration) * 100)}
                     status="active"
                     strokeWidth={50}
                     strokeColor={{

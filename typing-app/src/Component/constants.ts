@@ -1,9 +1,16 @@
 export const WORD_BANKS = {
     vietnamese: [
-        'xin', 'chào', 'cảm', 'ơn', 'tạm', 'biệt', 'học', 'tập',
+        'xin', 'chào', 'cảm', 'ơn', 'tạm', 'biệt', 'tập',
         'công', 'việc', 'gia', 'đình', 'bạn', 'bè', 'thành', 'phố',
         'quê', 'hương', 'đất', 'nước', 'tương', 'lai', 'hiện', 'tại',
-        'quá', 'khứ', 'thành', 'công', 'hạnh', 'phúc'
+        'quá', 'khứ', 'hạnh', 'phúc', 'mạc', 'ân', 'đoan', 'tốt',
+        'giáo', 'dục', 'nghệ', 'thuật', 'khởi', 'nghiệp', 'phát', 'triển',
+        'tình', 'yêu', 'kết', 'nối', 'sức', 'mạnh', 'phong', 'cảnh',
+        'đặc', 'biệt', 'môi', 'trường', 'xã', 'hội', 'trách',
+        'nhiệm', 'đổi', 'mới', 'cuộc', 'sống', 'tự', 'do', 'bình',
+        'đẳng', 'hòa', 'dân', 'chủ', 'pháp', 'luật', 'văn', 'hóa',
+        'tôn', 'giáo', 'khoa', 'kỹ', 'thuật', 'ân', 'học', 'sức',
+        'khỏe', 'thương', 'mại', 'quốc', 'gia', 'không', 'được', 'trùng'
     ],
     english: [
         'hello', 'thanks', 'goodbye', 'study', 'work', 'peace',
@@ -13,7 +20,7 @@ export const WORD_BANKS = {
     ]
 } as const;
 
-export const GAME_DURATION = 60; // seconds
+export const GAME_DURATION = 60;
 export const VISIBLE_WORDS_AHEAD = 6;
 export const VISIBLE_WORDS_BEHIND = 5;
 export const WORDS_BUFFER_THRESHOLD = 10;
