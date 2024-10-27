@@ -12,3 +12,13 @@ export interface WordStat {
 }
 
 export type Language = 'vietnamese' | 'english';
+
+export interface TestHistory {
+    date: string;
+    wpm: number;
+    accuracy: number;
+    correctWords: number;
+    incorrectWords: number;
+    language: Language;
+    duration: number;
+}

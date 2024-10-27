@@ -8,11 +8,14 @@ interface StatisticsProps {
 }
 
 const Statistics: React.FC<StatisticsProps> = ({ wordStats }) => {
-    const wordStatsData = Object.values(wordStats)
+    // Filter only words with incorrect attempts for charts and table
+    const incorrectWordsData = Object.values(wordStats).filter(stat => stat.incorrect > 0);
+
+    const wordStatsData = incorrectWordsData
         .sort((a, b) => b.attempts - a.attempts)
         .slice(0, 10);
 
-    const pieChartData = Object.values(wordStats).map(stat => ({
+    const pieChartData = incorrectWordsData.map(stat => ({
         name: stat.word,
         value: stat.attempts,
         accuracy: stat.accuracy,
@@ -29,11 +32,6 @@ const Statistics: React.FC<StatisticsProps> = ({ wordStats }) => {
             dataIndex: 'attempts',
             key: 'attempts',
             sorter: (a: WordStat, b: WordStat) => b.attempts - a.attempts,
-        },
-        {
-            title: 'Đúng',
-            dataIndex: 'correct',
-            key: 'correct',
         },
         {
             title: 'Sai',
@@ -108,12 +106,13 @@ const Statistics: React.FC<StatisticsProps> = ({ wordStats }) => {
                 />
             </Card>
 
-            <Card title="Chi tiết từng từ">
+            <Card title="Chi tiết các từ sai">
                 <Table
-                    dataSource={Object.values(wordStats)}
+                    dataSource={incorrectWordsData}
                     columns={columns}
                     pagination={{ pageSize: 10 }}
                     rowKey="word"
+                    scroll={{ x: 'max-content' }} // Makes the table responsive
                 />
             </Card>
         </>
