@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Button, Select, Typography, Space, Input, Progress, Tooltip, Modal, Table, Radio } from 'antd';
+import { Button, Select, Typography, Space, Input, Progress, Tooltip, Modal, Table, Radio, notification, Card, Divider } from 'antd';
 import type { InputRef } from 'antd';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, Tooltip as RechartsTooltip } from 'recharts';
 import { format, isAfter, parseISO, subDays, subHours, subMonths } from 'date-fns';
 import { Word, WordStat, Language, TestHistory } from './types';
-import { WORD_BANKS, VISIBLE_WORDS_AHEAD, VISIBLE_WORDS_BEHIND, WORDS_BUFFER_THRESHOLD, WORDS_BATCH_SIZE } from './constants';
+import { WORD_BANKS, WORDS_BUFFER_THRESHOLD, WORDS_BATCH_SIZE } from './constants';
 import Statistics from './Statistics';
 import {
     Container,
@@ -16,7 +16,8 @@ import {
     HistoryButton,
     ResponsiveStatsGrid
 } from './style';
-
+import Confetti from 'react-confetti';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, FireOutlined, GlobalOutlined, HistoryOutlined, LoadingOutlined, PercentageOutlined, PlayCircleOutlined, TrophyOutlined } from '@ant-design/icons';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
@@ -28,6 +29,9 @@ const DURATION_OPTIONS = [
 ];
 type TimeRange = 'last10' | 'hourly' | 'daily' | 'monthly';
 const TypingChallenge: React.FC = () => {
+    const [bestWPM, setBestWPM] = useState(0);
+    const [bestAccuracy, setBestAccuracy] = useState(0);
+    const [showConfetti, setShowConfetti] = useState(false);
     const [language, setLanguage] = useState<Language>('vietnamese');
     const [words, setWords] = useState<Word[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -45,8 +49,25 @@ const TypingChallenge: React.FC = () => {
     const [testHistory, setTestHistory] = useState<TestHistory[]>([]);
     const [hasRecordedResult, setHasRecordedResult] = useState(false);
     const [timeRange, setTimeRange] = useState<TimeRange>('last10');
+    const [newRecord, setNewRecord] = useState<{ type: 'wpm' | 'accuracy' | 'both'; value: number } | null>(null);
 
+    useEffect(() => {
+        // Lấy kỷ lục từ typingHistory
+        const savedHistory = localStorage.getItem('typingHistory');
+        if (savedHistory) {
+            const history: TestHistory[] = JSON.parse(savedHistory);
 
+            // Tìm WPM cao nhất
+            const maxWPM = Math.max(...history.map(item => item.wpm), 0);
+            setBestWPM(maxWPM);
+            localStorage.setItem('bestWPM', String(maxWPM));
+
+            // Tìm độ chính xác cao nhất
+            const maxAccuracy = Math.max(...history.map(item => item.accuracy), 0);
+            setBestAccuracy(maxAccuracy);
+            localStorage.setItem('bestAccuracy', String(maxAccuracy));
+        }
+    }, []);
     const generateMoreWords = useCallback(() => {
         const wordList = WORD_BANKS[language];
         const newWords: Word[] = [];
@@ -186,11 +207,22 @@ const TypingChallenge: React.FC = () => {
         : 0;
 
     const wpm = Math.round((correctWords / ((selectedDuration - timeLeft) || 1)) * 60);
+    // Định nghĩa kiểu cho `acc` để lưu trữ dữ liệu đã được tổng hợp
+    type AggregatedData = {
+        [key: string]: {
+            date: string;
+            wpm: number;
+            accuracy: number;
+            count: number;
+            rawDate: string;
+        };
+    };
+
     const getFilteredAndFormattedHistory = useCallback(() => {
         const now = new Date();
         let filteredData = [...testHistory];
 
-        // First filter by time range
+        // Lọc dữ liệu theo khoảng thời gian
         switch (timeRange) {
             case 'hourly':
                 filteredData = testHistory.filter(item =>
@@ -212,7 +244,7 @@ const TypingChallenge: React.FC = () => {
                 break;
         }
 
-        // Then format the data based on time range
+        // Định dạng dữ liệu theo khoảng thời gian
         let formattedData = filteredData.map(item => {
             const date = parseISO(item.date);
             let formattedDate = '';
@@ -236,14 +268,14 @@ const TypingChallenge: React.FC = () => {
                 date: formattedDate,
                 wpm: item.wpm,
                 accuracy: item.accuracy,
-                rawDate: item.date // keep original date for sorting
+                rawDate: item.date // Giữ lại ngày gốc để sắp xếp sau
             };
         });
 
-        // For monthly and daily views, aggregate the data
+        // Tổng hợp dữ liệu cho chế độ hiển thị theo ngày hoặc tháng
         if (timeRange === 'monthly' || timeRange === 'daily') {
             formattedData = Object.values(
-                formattedData.reduce((acc: any, curr) => {
+                formattedData.reduce((acc: AggregatedData, curr) => {
                     if (!acc[curr.date]) {
                         acc[curr.date] = {
                             date: curr.date,
@@ -253,20 +285,25 @@ const TypingChallenge: React.FC = () => {
                             rawDate: curr.rawDate
                         };
                     } else {
-                        acc[curr.date].wpm = Math.round((acc[curr.date].wpm * acc[curr.date].count + curr.wpm) / (acc[curr.date].count + 1));
-                        acc[curr.date].accuracy = Math.round((acc[curr.date].accuracy * acc[curr.date].count + curr.accuracy) / (acc[curr.date].count + 1));
+                        acc[curr.date].wpm = Math.round(
+                            (acc[curr.date].wpm * acc[curr.date].count + curr.wpm) / (acc[curr.date].count + 1)
+                        );
+                        acc[curr.date].accuracy = Math.round(
+                            (acc[curr.date].accuracy * acc[curr.date].count + curr.accuracy) / (acc[curr.date].count + 1)
+                        );
                         acc[curr.date].count += 1;
                     }
                     return acc;
-                }, {})
+                }, {} as AggregatedData)
             );
         }
 
-        // Sort by raw date
+        // Sắp xếp dữ liệu theo ngày gốc và loại bỏ rawDate khỏi đầu ra cuối cùng
         return formattedData
             .sort((a, b) => parseISO(a.rawDate).getTime() - parseISO(b.rawDate).getTime())
-            .map(({ rawDate, ...rest }) => rest); // remove rawDate from final output
+            .map(({ rawDate, ...rest }) => rest); // Loại bỏ rawDate
     }, [testHistory, timeRange]);
+
     const renderHistoryChart = () => {
         const chartData = getFilteredAndFormattedHistory();
 
@@ -346,13 +383,92 @@ const TypingChallenge: React.FC = () => {
                 duration: selectedDuration
             };
 
-            const updatedHistory = [newResult, ...testHistory].slice(0, 100); // Giữ 100 kết quả gần nhất
+            const updatedHistory = [newResult, ...testHistory].slice(0, 100);
             setTestHistory(updatedHistory);
             localStorage.setItem('typingHistory', JSON.stringify(updatedHistory));
-            setHasRecordedResult(true); // Đánh dấu đã lưu kết quả
-        }
-    }, [correctWords, incorrectWords, wpm, accuracy, language, selectedDuration, testHistory, testComplete, hasRecordedResult]);
+            setHasRecordedResult(true);
 
+            // Kiểm tra kỷ lục mới
+            const isWPMRecord = wpm > bestWPM;
+            const isAccuracyRecord = accuracy > bestAccuracy;
+
+            if (isWPMRecord && isAccuracyRecord) {
+                setNewRecord({ type: 'both', value: 0 }); // Sử dụng type 'both' để xác định cả 2 đều là kỷ lục
+            } else if (isWPMRecord) {
+                setNewRecord({ type: 'wpm', value: wpm });
+            } else if (isAccuracyRecord) {
+                setNewRecord({ type: 'accuracy', value: accuracy });
+            }
+
+            if (isWPMRecord || isAccuracyRecord) {
+                setShowConfetti(true);
+            }
+
+            // Cập nhật kỷ lục
+            if (isWPMRecord) {
+                setBestWPM(wpm);
+                localStorage.setItem('bestWPM', String(wpm));
+            }
+            if (isAccuracyRecord) {
+                setBestAccuracy(accuracy);
+                localStorage.setItem('bestAccuracy', String(accuracy));
+            }
+        }
+    }, [correctWords, incorrectWords, wpm, accuracy, language, selectedDuration, testHistory, testComplete, hasRecordedResult, bestWPM, bestAccuracy]);
+
+    // Hiển thị thông báo kỷ lục mới
+    useEffect(() => {
+        if (newRecord) {
+            let message = '';
+            let description = '';
+
+            if (newRecord.type === 'wpm') {
+                message = 'Kỷ lục WPM mới!';
+                description = `Bạn đã đạt WPM mới: ${newRecord.value}`;
+            } else if (newRecord.type === 'accuracy') {
+                message = 'Kỷ lục độ chính xác mới!';
+                description = `Bạn đã đạt độ chính xác mới: ${newRecord.value}%`;
+            } else {
+                // Trường hợp cả WPM và độ chính xác đều là kỷ lục
+                message = 'Kỷ lục kép!';
+                description = `Bạn đã đạt cả WPM (${wpm}) và độ chính xác (${accuracy}%) mới`;
+            }
+
+            notification.open({
+                message: (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <TrophyOutlined style={{
+                            fontSize: 24,
+                            color: '#ffd700',
+                            marginRight: 8
+                        }} />
+                        {message}
+                    </div>
+                ),
+                description: (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        {description}
+                    </div>
+                ),
+                duration: 0,
+                onClose: () => {
+                    setTimeout(() => {
+                        setShowConfetti(false);
+                    }, 2000);
+                }
+            });
+
+            setNewRecord(null);
+        }
+    }, [newRecord]);
     useEffect(() => {
         if (testComplete) {
             saveTestResult();
@@ -365,34 +481,50 @@ const TypingChallenge: React.FC = () => {
             const currentWordElement = wordDisplayRef.current.querySelector(`[data-index="${currentIndex}"]`);
 
             if (currentWordElement) {
-                currentWordElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
+                const containerHeight = wordDisplayRef.current.clientHeight;
+                const wordTop = (currentWordElement as HTMLElement).offsetTop;
+                wordDisplayRef.current.scrollTop = Math.max(0, wordTop - containerHeight / 4);
             }
         }
     }, [currentIndex, isRunning]);
     return (
         <Container>
             <Space direction="vertical" style={{ width: '100%' }} size="large">
-                <div style={{ textAlign: 'center' }}>
+                {showConfetti && <Confetti onConfettiComplete={() => setShowConfetti(false)} />}
+
+                <Card
+                    style={{
+                        maxWidth: 600,
+                        margin: 'auto',
+                        padding: '20px',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        textAlign: 'center'
+                    }}
+                    bordered={false}
+                >
                     <Title level={1}>Typing Speed Test</Title>
-                    <Title level={5}>Prod by Quang Bui</Title>
-                    <Space wrap>
+                    <Text type="secondary">Prod by Quang Bui</Text>
+                    <Divider />
+
+                    <Space wrap size="large" align="center" style={{ justifyContent: 'center', width: '100%' }}>
                         <Select
                             value={language}
                             onChange={(value: Language) => setLanguage(value)}
-                            style={{ width: 120 }}
+                            style={{ minWidth: 150 }}
                             disabled={isRunning}
+                            suffixIcon={<GlobalOutlined />}
                         >
                             <Option value="vietnamese">Tiếng Việt</Option>
                             <Option value="english">English</Option>
                         </Select>
+
                         <Select
                             value={selectedDuration}
                             onChange={(value: number) => setSelectedDuration(value)}
-                            style={{ width: 120 }}
+                            style={{ minWidth: 150 }}
                             disabled={isRunning}
+                            suffixIcon={<ClockCircleOutlined />}
                         >
                             {DURATION_OPTIONS.map(option => (
                                 <Option key={option.value} value={option.value}>
@@ -400,14 +532,36 @@ const TypingChallenge: React.FC = () => {
                                 </Option>
                             ))}
                         </Select>
-                        <Button type="primary" onClick={startGame} disabled={isRunning}>
+
+                        <Button
+                            type="primary"
+                            onClick={startGame}
+                            disabled={isRunning}
+                            icon={isRunning ? <LoadingOutlined /> : <PlayCircleOutlined />}
+                        >
                             {isRunning ? 'Đang chạy...' : 'Bắt đầu'}
                         </Button>
-                        <HistoryButton onClick={() => setShowHistory(true)}>
+
+                        <Button
+                            type="default"
+                            onClick={() => setShowHistory(true)}
+                            icon={<HistoryOutlined />}
+                        >
                             Lịch sử
-                        </HistoryButton>
+                        </Button>
                     </Space>
-                </div>
+
+                    <Divider />
+
+                    <Space direction="vertical" align="center">
+                        <Text strong style={{ fontSize: '20px', color: '#faad14' }}>
+                            <FireOutlined /> Kỷ lục WPM: {bestWPM}
+                        </Text>
+                        <Text strong style={{ fontSize: '20px', color: '#13c2c2' }}>
+                            <PercentageOutlined /> Kỷ lục Độ chính xác: {bestAccuracy}%
+                        </Text>
+                    </Space>
+                </Card>
 
                 <Progress
                     percent={Math.round(((selectedDuration - timeLeft) / selectedDuration) * 100)}
@@ -423,35 +577,41 @@ const TypingChallenge: React.FC = () => {
                 <ResponsiveStatsGrid>
                     <StatCard>
                         <Tooltip title="Thời gian còn lại">
+                            <ClockCircleOutlined style={{ fontSize: '24px', color: '#1890ff', marginBottom: 8 }} />
                             <Title level={4}>{timeLeft}s</Title>
                             <Text type="secondary">Thời gian</Text>
                         </Tooltip>
                     </StatCard>
                     <StatCard>
                         <Tooltip title="Số từ gõ đúng">
+                            <CheckCircleOutlined style={{ fontSize: '24px', color: '#52c41a', marginBottom: 8 }} />
                             <Title level={4}>{correctWords}</Title>
                             <Text type="secondary">Từ đúng</Text>
                         </Tooltip>
                     </StatCard>
                     <StatCard>
                         <Tooltip title="Số từ gõ sai">
+                            <CloseCircleOutlined style={{ fontSize: '24px', color: '#ff4d4f', marginBottom: 8 }} />
                             <Title level={4}>{incorrectWords}</Title>
                             <Text type="secondary">Từ sai</Text>
                         </Tooltip>
                     </StatCard>
                     <StatCard>
                         <Tooltip title="Words Per Minute">
+                            <FireOutlined style={{ fontSize: '24px', color: '#faad14', marginBottom: 8 }} />
                             <Title level={4}>{wpm}</Title>
                             <Text type="secondary">WPM</Text>
                         </Tooltip>
                     </StatCard>
                     <StatCard>
                         <Tooltip title="Tỷ lệ gõ đúng">
+                            <PercentageOutlined style={{ fontSize: '24px', color: '#13c2c2', marginBottom: 8 }} />
                             <Title level={4}>{accuracy}%</Title>
                             <Text type="secondary">Độ chính xác</Text>
                         </Tooltip>
                     </StatCard>
                 </ResponsiveStatsGrid>
+
 
                 <WordDisplay ref={wordDisplayRef}>
                     {words.map((word, index) => (
@@ -499,6 +659,7 @@ const TypingChallenge: React.FC = () => {
                                 title: 'Ngày',
                                 dataIndex: 'date',
                                 render: (date: string) => format(new Date(date), 'dd/MM/yyyy HH:mm'),
+                                sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
                             },
                             {
                                 title: 'WPM',

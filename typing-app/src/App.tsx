@@ -6,11 +6,7 @@ const { Header, Content } = Layout;
 
 const App: React.FC = () => {
   return (
-    <Layout>
-      <Content style={{ padding: '50px' }}>
-        <TypingChallenge />
-      </Content>
-    </Layout>
+    <TypingChallenge />
   );
 };
 
