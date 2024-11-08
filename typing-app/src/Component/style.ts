@@ -21,35 +21,44 @@ export const WordDisplay = styled.div`
   padding: 20px;
   background: #ffffff;
   border-radius: 8px;
-  height: 200px;  // Đặt chiều cao cố định
-  overflow-y: auto;  // Cho phép cuộn dọc
+  height: 100px;  // Giới hạn chiều cao để chỉ hiển thị 2 dòng
+  overflow: auto;  // Thay đổi từ overflow-y: auto sang hidden
   position: relative;
   font-size: 24px;
-  scroll-behavior: smooth;  // Hỗ trợ cuộn mượt
   
-  @media (max-width: 768px) {
-    font-size: 18px;
-    padding: 15px;
-    height: 150px;
+  // Thêm các quy tắc để giữ 2 dòng cuối cùng
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
   }
 `;
 
 export const WordSpan = styled.span<{ status: string }>`
-  padding: 6px 12px; /* Tăng padding cho chữ */
+  padding: 6px 12px; 
   border-radius: 4px;
   color: ${props => {
     switch (props.status) {
-      case 'correct': return '#52c41a'; // Màu xanh cho chữ đúng
-      case 'incorrect': return '#f5222d'; // Màu đỏ cho chữ sai
-      case 'current': return '#ffffff'; // Màu trắng cho chữ hiện tại
-      default: return '#8c8c8c'; // Màu xám cho chữ không biết
+      case 'correct': return '#52c41a';
+      case 'incorrect': return '#f5222d';
+      case 'current': return '#ffffff';
+      default: return '#8c8c8c';
     }
   }};
-  background-color: ${props => props.status === 'current' ? '#1890ff' : 'transparent'}; // Nền xanh cho chữ hiện tại
+  background-color: ${props => props.status === 'current' ? '#1890ff' : 'transparent'}; 
   transition: all 0.2s ease;
   
+  // Thêm hiệu ứng cho từ hiện tại
+  ${props => props.status === 'current' && `
+    box-shadow: 0 0 10px rgba(24, 144, 255, 0.5); // Tạo bóng cho từ hiện tại
+    transform: scale(1.05); // Phóng to từ hiện tại
+  `}
+
   &:hover {
-    background-color: ${props => props.status === 'current' ? '#40a9ff' : 'transparent'}; // Thay đổi màu nền khi hover
+    background-color: ${props => props.status === 'current' ? '#40a9ff' : 'transparent'}; 
   }
 `;
 

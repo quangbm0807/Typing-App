@@ -1,6 +1,6 @@
 export interface Word {
-    text: string;
-    status: 'waiting' | 'current' | 'correct' | 'incorrect';
+    text: string;  // hoặc bất kỳ thuộc tính nào mà bạn cần
+    status: string; // có thể là 'waiting', 'current', 'correct', 'incorrect', v.v.
 }
 
 export interface WordStat {
