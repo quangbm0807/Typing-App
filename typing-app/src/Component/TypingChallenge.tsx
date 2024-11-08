@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button, Select, Typography, Space, Input, Progress, Tooltip, Modal, Table, Radio } from 'antd';
 import type { InputRef } from 'antd';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, Tooltip as RechartsTooltip } from 'recharts';
 import { format, isAfter, parseISO, subDays, subHours, subMonths } from 'date-fns';
-import { uniqBy } from 'lodash';
 import { Word, WordStat, Language, TestHistory } from './types';
 import { WORD_BANKS, VISIBLE_WORDS_AHEAD, VISIBLE_WORDS_BEHIND, WORDS_BUFFER_THRESHOLD, WORDS_BATCH_SIZE } from './constants';
 import Statistics from './Statistics';
@@ -171,15 +171,15 @@ const TypingChallenge: React.FC = () => {
 
 
 
-    const getVisibleWords = () => {
-        if (!isRunning && currentIndex === 0) {
-            return words.slice(0, VISIBLE_WORDS_AHEAD);
-        }
+    // const getVisibleWords = () => {
+    //     if (!isRunning && currentIndex === 0) {
+    //         return words.slice(0, VISIBLE_WORDS_AHEAD);
+    //     }
 
-        const start = Math.max(0, currentIndex - VISIBLE_WORDS_BEHIND);
-        const end = Math.min(words.length, currentIndex + VISIBLE_WORDS_AHEAD);
-        return words.slice(start, end);
-    };
+    //     const start = Math.max(0, currentIndex - VISIBLE_WORDS_BEHIND);
+    //     const end = Math.min(words.length, currentIndex + VISIBLE_WORDS_AHEAD);
+    //     return words.slice(start, end);
+    // };
 
     const accuracy = (correctWords + incorrectWords) > 0
         ? Math.round((correctWords / (correctWords + incorrectWords)) * 100)
@@ -358,7 +358,20 @@ const TypingChallenge: React.FC = () => {
             saveTestResult();
         }
     }, [testComplete, saveTestResult]);
+    const wordDisplayRef = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+        if (wordDisplayRef.current && isRunning) {
+            const currentWordElement = wordDisplayRef.current.querySelector(`[data-index="${currentIndex}"]`);
+
+            if (currentWordElement) {
+                currentWordElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+    }, [currentIndex, isRunning]);
     return (
         <Container>
             <Space direction="vertical" style={{ width: '100%' }} size="large">
@@ -440,9 +453,13 @@ const TypingChallenge: React.FC = () => {
                     </StatCard>
                 </ResponsiveStatsGrid>
 
-                <WordDisplay>
-                    {getVisibleWords().map((word, index) => (
-                        <WordSpan key={`${word.text}-${index}`} status={word.status}>
+                <WordDisplay ref={wordDisplayRef}>
+                    {words.map((word, index) => (
+                        <WordSpan
+                            key={`${word.text}-${index}`}
+                            status={word.status}
+                            data-index={index}  // Thêm thuộc tính data-index
+                        >
                             {word.text}
                         </WordSpan>
                     ))}
@@ -514,3 +531,4 @@ const TypingChallenge: React.FC = () => {
 };
 
 export default TypingChallenge;
+// styles.ts
