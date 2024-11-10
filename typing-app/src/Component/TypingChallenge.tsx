@@ -17,7 +17,7 @@ import {
     ResponsiveStatsGrid
 } from './style';
 import Confetti from 'react-confetti';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, FireOutlined, GlobalOutlined, HistoryOutlined, LoadingOutlined, PercentageOutlined, PlayCircleOutlined, TrophyOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, FireOutlined, GlobalOutlined, HistoryOutlined, LoadingOutlined, PercentageOutlined, PlayCircleOutlined, QuestionCircleOutlined, TrophyOutlined } from '@ant-design/icons';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
@@ -32,12 +32,18 @@ const TypingChallenge: React.FC = () => {
     const [bestWPM, setBestWPM] = useState(0);
     const [bestAccuracy, setBestAccuracy] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
-    const [language, setLanguage] = useState<Language>('vietnamese');
+    const [language, setLanguage] = useState<Language>(() => {
+        const savedLanguage = localStorage.getItem('language');
+        return savedLanguage ? (savedLanguage as Language) : 'vietnamese'; // Giá trị mặc định
+    });
+    const [selectedDuration, setSelectedDuration] = useState(() => {
+        const savedDuration = localStorage.getItem('duration');
+        return savedDuration ? Number(savedDuration) : 60; // Giá trị mặc định
+    });
     const [words, setWords] = useState<Word[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [input, setInput] = useState('');
     const [isRunning, setIsRunning] = useState(false);
-    const [selectedDuration, setSelectedDuration] = useState(60);
     const [timeLeft, setTimeLeft] = useState(selectedDuration);
     const [hasStartedTyping, setHasStartedTyping] = useState(false);
     const [correctWords, setCorrectWords] = useState(0);
@@ -53,7 +59,16 @@ const TypingChallenge: React.FC = () => {
 
     useEffect(() => {
         // Lấy kỷ lục từ typingHistory
+        const savedLanguage = localStorage.getItem('language') as Language | null;
+        const savedDuration = localStorage.getItem('duration');
+        if (savedLanguage) setLanguage(savedLanguage);
+        if (savedDuration) setSelectedDuration(Number(savedDuration));
+
+        // Load history
         const savedHistory = localStorage.getItem('typingHistory');
+        if (savedHistory) {
+            setTestHistory(JSON.parse(savedHistory));
+        }
         if (savedHistory) {
             const history: TestHistory[] = JSON.parse(savedHistory);
 
@@ -68,10 +83,31 @@ const TypingChallenge: React.FC = () => {
             localStorage.setItem('bestAccuracy', String(maxAccuracy));
         }
     }, []);
+    useEffect(() => {
+        localStorage.setItem('language', language);
+    }, [language]);
+
+    useEffect(() => {
+        localStorage.setItem('duration', String(selectedDuration));
+    }, [selectedDuration]);
+
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (!isRunning && e.key === 'Enter') {
+                startGame();
+            }
+            if (isRunning && e.altKey && e.key === 'r') {
+                startGame();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [isRunning]);
     const generateMoreWords = useCallback(() => {
         const wordList = WORD_BANKS[language];
         const newWords: Word[] = [];
-        for (let i = 0; i < WORDS_BATCH_SIZE; i++) {
+        for (let i = 0; i < 30; i++) {
             const randomIndex = Math.floor(Math.random() * wordList.length);
             newWords.push({
                 text: wordList[randomIndex],
@@ -88,7 +124,7 @@ const TypingChallenge: React.FC = () => {
         setCurrentIndex(0);
         setInput('');
         setIsRunning(true);
-        setTimeLeft(selectedDuration);
+        setTimeLeft(selectedDuration); // Đảm bảo thời gian được lấy từ selectedDuration
         setHasStartedTyping(false);
         setCorrectWords(0);
         setIncorrectWords(0);
@@ -114,7 +150,7 @@ const TypingChallenge: React.FC = () => {
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!isRunning) return;
+        if (!isRunning) setInput('Alt + R để bắt đầu lại');
         if (!hasStartedTyping) {
             setHasStartedTyping(true);
         }
@@ -182,13 +218,6 @@ const TypingChallenge: React.FC = () => {
         }
     }, [isRunning]);
 
-    useEffect(() => {
-        // Load history from localStorage
-        const savedHistory = localStorage.getItem('typingHistory');
-        if (savedHistory) {
-            setTestHistory(JSON.parse(savedHistory));
-        }
-    }, []);
 
 
 
@@ -489,8 +518,8 @@ const TypingChallenge: React.FC = () => {
     }, [currentIndex, isRunning]);
     return (
         <Container>
+            {showConfetti && <Confetti width={window.innerWidth} height={window.innerHeight} onConfettiComplete={() => setShowConfetti(false)} />}
             <Space direction="vertical" style={{ width: '100%' }} size="large">
-                {showConfetti && <Confetti onConfettiComplete={() => setShowConfetti(false)} />}
 
                 <Card
                     style={{
@@ -503,7 +532,9 @@ const TypingChallenge: React.FC = () => {
                     }}
                     bordered={false}
                 >
-                    <Title level={1}>Typing Speed Test</Title>
+                    <Title level={1}>Typing Speed Test  <Tooltip title={<span>Enter để bắt đầu <br /> Alt+R để reset</span>}>
+                        <Button type="text" shape="circle" icon={<QuestionCircleOutlined style={{ fontSize: 24 }} />} />
+                    </Tooltip></Title>
                     <Text type="secondary">Prod by Quang Bui</Text>
                     <Divider />
 
@@ -578,7 +609,7 @@ const TypingChallenge: React.FC = () => {
                     <StatCard>
                         <Tooltip title="Thời gian còn lại">
                             <ClockCircleOutlined style={{ fontSize: '24px', color: '#1890ff', marginBottom: 8 }} />
-                            <Title level={4}>{timeLeft}s</Title>
+                            <Title level={4}>{selectedDuration}s</Title>
                             <Text type="secondary">Thời gian</Text>
                         </Tooltip>
                     </StatCard>
@@ -632,14 +663,14 @@ const TypingChallenge: React.FC = () => {
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         disabled={!isRunning}
-                        placeholder={isRunning ? "Gõ từ ở đây..." : "Nhấn 'Bắt đầu' để chơi"}
+                        placeholder={isRunning ? "Alt+R để bắt đầu lại" : "Nhấn Enter hoặc 'Bắt đầu' để bắt đầu tình giờ"}
                         size="large"
                     />
                 </InputWrapper>
 
-                {!isRunning && correctWords > 0 && (
+                {/* {!isRunning && correctWords > 0 && (
                     <Statistics wordStats={wordStats} />
-                )}
+                )} */}
 
                 <Modal
                     title="Lịch sử gõ phím"
