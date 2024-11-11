@@ -517,8 +517,18 @@ const TypingChallenge: React.FC = () => {
         }
     }, [currentIndex, isRunning]);
     return (
-        <Container>
-            {showConfetti && <Confetti width={window.innerWidth} height={window.innerHeight} onConfettiComplete={() => setShowConfetti(false)} />}
+        <Container style={{ position: 'relative' }}>
+            {showConfetti && <Confetti
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    minWidth: '100vw',
+                    minHeight: '100vh',
+                    overflow: 'hidden'
+                }}
+                onConfettiComplete={() => setShowConfetti(false)}
+            />}
             <Space direction="vertical" style={{ width: '100%' }} size="large">
 
                 <Card
