@@ -18,6 +18,7 @@ import {
 } from './style';
 import Confetti from 'react-confetti';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, FireOutlined, GlobalOutlined, HistoryOutlined, LoadingOutlined, PercentageOutlined, PlayCircleOutlined, QuestionCircleOutlined, TrophyOutlined } from '@ant-design/icons';
+import TypingGuideTour from './TypingGuideTour';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
@@ -517,8 +518,17 @@ const TypingChallenge: React.FC = () => {
         }
     }, [currentIndex, isRunning]);
     return (
-        <Container>
-            {showConfetti && <Confetti width={window.innerWidth} height={window.innerHeight} onConfettiComplete={() => setShowConfetti(false)} />}
+        <Container style={{ position: 'relative' }}>
+            {showConfetti && <Confetti
+                style={{
+                    top: 0,
+                    left: 0,
+                    minWidth: '100vw',
+                    minHeight: '100vh',
+                    overflow: 'hidden'
+                }}
+                onConfettiComplete={() => setShowConfetti(false)}
+            />}
             <Space direction="vertical" style={{ width: '100%' }} size="large">
 
                 <Card
@@ -540,6 +550,7 @@ const TypingChallenge: React.FC = () => {
 
                     <Space wrap size="large" align="center" style={{ justifyContent: 'center', width: '100%' }}>
                         <Select
+                            className='language-select'
                             value={language}
                             onChange={(value: Language) => setLanguage(value)}
                             style={{ minWidth: 150 }}
@@ -551,6 +562,7 @@ const TypingChallenge: React.FC = () => {
                         </Select>
 
                         <Select
+                            className='timer-select'
                             value={selectedDuration}
                             onChange={(value: number) => setSelectedDuration(value)}
                             style={{ minWidth: 150 }}
@@ -584,7 +596,7 @@ const TypingChallenge: React.FC = () => {
 
                     <Divider />
 
-                    <Space direction="vertical" align="center">
+                    <Space direction="vertical" align="center" className='stats'>
                         <Text strong style={{ fontSize: '20px', color: '#faad14' }}>
                             <FireOutlined /> Kỷ lục WPM: {bestWPM}
                         </Text>
@@ -718,6 +730,7 @@ const TypingChallenge: React.FC = () => {
                     />
                 </Modal>
             </Space>
+            <TypingGuideTour />
         </Container>
     );
 };
