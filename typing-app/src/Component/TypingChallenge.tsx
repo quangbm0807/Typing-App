@@ -19,6 +19,7 @@ import {
 import Confetti from 'react-confetti';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, FireOutlined, GlobalOutlined, HistoryOutlined, LoadingOutlined, PercentageOutlined, PlayCircleOutlined, QuestionCircleOutlined, TrophyOutlined } from '@ant-design/icons';
 import TypingGuideTour from './TypingGuideTour';
+import { set } from 'lodash';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
@@ -57,7 +58,21 @@ const TypingChallenge: React.FC = () => {
     const [hasRecordedResult, setHasRecordedResult] = useState(false);
     const [timeRange, setTimeRange] = useState<TimeRange>('last10');
     const [newRecord, setNewRecord] = useState<{ type: 'wpm' | 'accuracy' | 'both'; value: number } | null>(null);
+    const [windowSize, setWindowSize] = useState({
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
+    useEffect(() => {
+        const handleResize = () => {
+            setWindowSize({
+                width: window.innerWidth,
+                height: window.innerHeight
+            });
+        };
 
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     useEffect(() => {
         // Lấy kỷ lục từ typingHistory
         const savedLanguage = localStorage.getItem('language') as Language | null;
@@ -90,8 +105,24 @@ const TypingChallenge: React.FC = () => {
 
     useEffect(() => {
         localStorage.setItem('duration', String(selectedDuration));
+        // Reset các state liên quan
+        setTimeLeft(selectedDuration);
+        setCorrectWords(0);
+        setIncorrectWords(0);
+        setIsRunning(false);
+        setTestComplete(false);
+        setHasStartedTyping(false);
+        setInput('');
+        setCurrentIndex(0);
+        setWords(generateMoreWords());
+        setWordStats({});
+        setHasRecordedResult(false);
     }, [selectedDuration]);
-
+    const calculateWPM = useCallback(() => {
+        const timeElapsed = selectedDuration - timeLeft;
+        if (timeElapsed <= 0 || correctWords <= 0) return 0;
+        return Math.round((correctWords / timeElapsed) * 60);
+    }, [correctWords, timeLeft, selectedDuration]);
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
             if (!isRunning && e.key === 'Enter') {
@@ -99,6 +130,7 @@ const TypingChallenge: React.FC = () => {
             }
             if (isRunning && e.altKey && e.key === 'r') {
                 startGame();
+                setIsRunning(false);
             }
         };
 
@@ -236,7 +268,7 @@ const TypingChallenge: React.FC = () => {
         ? Math.round((correctWords / (correctWords + incorrectWords)) * 100)
         : 0;
 
-    const wpm = Math.round((correctWords / ((selectedDuration - timeLeft) || 1)) * 60);
+    const wpm = calculateWPM();
     // Định nghĩa kiểu cho `acc` để lưu trữ dữ liệu đã được tổng hợp
     type AggregatedData = {
         [key: string]: {
@@ -519,16 +551,23 @@ const TypingChallenge: React.FC = () => {
     }, [currentIndex, isRunning]);
     return (
         <Container style={{ position: 'relative' }}>
-            {showConfetti && <Confetti
-                style={{
+            {showConfetti && (
+                <div style={{
+                    position: 'fixed',
                     top: 0,
                     left: 0,
-                    minWidth: '100vw',
-                    minHeight: '100vh',
-                    overflow: 'hidden'
-                }}
-                onConfettiComplete={() => setShowConfetti(false)}
-            />}
+                    width: '100%',
+                    height: '100%',
+                    zIndex: 1000,
+                    pointerEvents: 'none'
+                }}>
+                    <Confetti
+                        width={windowSize.width}
+                        height={windowSize.height}
+                        recycle={true}
+                    />
+                </div>
+            )}
             <Space direction="vertical" style={{ width: '100%' }} size="large">
 
                 <Card
