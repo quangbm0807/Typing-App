@@ -2,7 +2,7 @@
 
 A modern, feature-rich typing speed test application built with React that supports multiple languages and provides detailed statistics and historical data visualization.
 
-![Typing Speed Test Screenshot](/api/placeholder/800/400)
+![Typing Speed Test Screenshot](./public/)
 
 ## Features
 
@@ -126,9 +126,6 @@ src/
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
