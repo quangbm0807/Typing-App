@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Table, Tabs } from 'antd';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, PieChart, Pie, Tooltip as RechartsTooltip } from 'recharts';
-import type { WordStat } from './types';
+import type { WordStat } from '../types';
 
 interface StatisticsProps {
     wordStats: Record<string, WordStat>;

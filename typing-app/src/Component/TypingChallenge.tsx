@@ -4,22 +4,19 @@ import { Button, Select, Typography, Space, Input, Progress, Tooltip, Modal, Tab
 import type { InputRef } from 'antd';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, Tooltip as RechartsTooltip } from 'recharts';
 import { format, isAfter, parseISO, subDays, subHours, subMonths } from 'date-fns';
-import { Word, WordStat, Language, TestHistory } from './types';
-import { WORD_BANKS, WORDS_BUFFER_THRESHOLD, WORDS_BATCH_SIZE } from './constants';
-import Statistics from './Statistics';
+import { Word, WordStat, Language, TestHistory } from '../types';
+import { WORD_BANKS, WORDS_BUFFER_THRESHOLD } from '../constants';
 import {
     Container,
     WordDisplay,
     WordSpan,
     StatCard,
     InputWrapper,
-    HistoryButton,
     ResponsiveStatsGrid
 } from './style';
 import Confetti from 'react-confetti';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, FireOutlined, GlobalOutlined, HistoryOutlined, LoadingOutlined, PercentageOutlined, PlayCircleOutlined, QuestionCircleOutlined, TrophyOutlined } from '@ant-design/icons';
 import TypingGuideTour from './TypingGuideTour';
-import { set } from 'lodash';
 const { Title, Text } = Typography;
 const { Option } = Select;
 

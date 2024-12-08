@@ -1,46 +1,137 @@
-# Getting Started with Create React App
+# Typing Speed Test Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, feature-rich typing speed test application built with React that supports multiple languages and provides detailed statistics and historical data visualization.
 
-## Available Scripts
+![Typing Speed Test Screenshot](/api/placeholder/800/400)
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- 🌍 Multiple language support (Vietnamese and English)
+- ⏱️ Configurable test durations (15s, 30s, 45s, 60s)
+- 📊 Real-time statistics (WPM, accuracy, correct/incorrect words)
+- 📈 Historical data tracking with interactive charts
+- 🏆 Personal best tracking (WPM and accuracy)
+- 🎯 Word-by-word accuracy tracking
+- 🎉 Achievement celebrations with confetti effects
+- 📱 Responsive design for all devices
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Technologies Used
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### Core Technologies
+- React 18
+- TypeScript
+- Ant Design (antd)
+- Styled Components
 
-### `npm test`
+### Key Libraries
+- `date-fns` - Date manipulation and formatting
+- `recharts` - Interactive charts for history visualization
+- `react-confetti` - Celebration effects
+- `@ant-design/icons` - Icon components
+- `lodash` - Utility functions
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Prerequisites
 
-### `npm run build`
+Before you begin, ensure you have the following installed:
+- Node.js (version 14.0 or higher)
+- npm (version 6.0 or higher) or yarn
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Installation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Clone the repository:
+```bash
+git clone https://github.com/quangbm0807/Typing-App
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. Navigate to the project directory:
+```bash
+cd typing-speed-test
+```
 
-### `npm run eject`
+3. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Development
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+To start the development server:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```bash
+npm start
+# or
+yarn start
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+The application will be available at `http://localhost:3000`
 
-## Learn More
+## Building for Production
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+To create a production build:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+npm run build
+# or
+yarn build
+```
+
+The built files will be available in the `build` directory.
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── TypingChallenge.tsx    # Main typing test component
+│   ├── Statistics.tsx         # Statistics display component
+│   ├── TypingGuideTour.tsx   # Guide tour component
+│   └── style.ts              # Styled components
+├── constants/
+│   └── index.ts              # Application constants
+├── types/
+│   └── index.ts              # TypeScript type definitions
+└── App.tsx                   # Root component
+```
+
+## Features in Detail
+
+### Test Configuration
+- Language selection between Vietnamese and English
+- Customizable test duration (15, 30, 45, or 60 seconds)
+- Quick reset using Alt + R shortcut
+- Start test using Enter key or start button
+
+### Statistics and Tracking
+- Real-time WPM calculation
+- Accuracy percentage
+- Correct and incorrect word counts
+- Personal best records for WPM and accuracy
+- Historical data visualization with filterable time ranges
+- Detailed progress charts
+
+### User Interface
+- Clean, modern design using Ant Design components
+- Responsive layout for all screen sizes
+- Interactive word display with color-coded feedback
+- Progress bar for remaining time
+- Tooltips for additional information
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Word banks sourced from various public domain sources
+- Icons provided by Ant Design Icons
+- UI components from Ant Design (antd)
