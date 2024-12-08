@@ -2,7 +2,7 @@
 
 A modern, feature-rich typing speed test application built with React that supports multiple languages and provides detailed statistics and historical data visualization.
 
-![Typing Speed Test Screenshot](/api/placeholder/800/400)
+![Typing Speed Test Screenshot](/public/screenshot.png)
 
 ## Features
 
@@ -45,7 +45,7 @@ git clone https://github.com/quangbm0807/Typing-App
 
 2. Navigate to the project directory:
 ```bash
-cd typing-speed-test
+cd Typing-App
 ```
 
 3. Install dependencies:
