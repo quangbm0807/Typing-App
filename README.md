@@ -83,21 +83,15 @@ lodash            → Utility functions
 ```
 src/
 ├── components/
-│   ├── core/
-│   │   ├── TypingArea.tsx
-│   │   ├── Statistics.tsx
-│   │   └── WordBank.tsx
-│   └── shared/
-│       ├── Charts.tsx
-│       └── Controls.tsx
-├── hooks/
-│   ├── useTyping.ts
-│   └── useStats.ts
-├── context/
-│   └── AppContext.tsx
-├── utils/
-│   └── calculations.ts
-└── App.tsx
+│   ├── TypingChallenge.tsx    # Main typing test component
+│   ├── Statistics.tsx         # Statistics display component
+│   ├── TypingGuideTour.tsx   # Guide tour component
+│   └── style.ts              # Styled components
+├── constants/
+│   └── index.ts              # Application constants
+├── types/
+│   └── index.ts              # TypeScript type definitions
+└── App.tsx                   # Root component
 ```
 
 ## 🎯 Key Features
