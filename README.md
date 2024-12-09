@@ -2,7 +2,7 @@
 
 A modern, feature-rich typing speed test application built with React that helps users improve their typing skills with real-time feedback and comprehensive statistics.
 
-![Typing Speed Test Screenshot](docs/screenshots/app-preview.png)
+![Typing Speed Test Screenshot](/typing-app/screenshot/screenshot.png)
 
 ## ✨ Features
 
