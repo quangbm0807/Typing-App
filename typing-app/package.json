@@ -2,7 +2,6 @@
   "name": "typing-app",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://quangbm0807.github.io/Typing-App",
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
     "@craco/craco": "^7.1.0",
