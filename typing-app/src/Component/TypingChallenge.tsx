@@ -4,8 +4,9 @@ import { Button, Select, Typography, Space, Input, Progress, Tooltip, Modal, Tab
 import type { InputRef } from 'antd';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, Tooltip as RechartsTooltip } from 'recharts';
 import { format, isAfter, parseISO, subDays, subHours, subMonths } from 'date-fns';
-import { Word, WordStat, Language, TestHistory } from '../types';
 import { WORD_BANKS, WORDS_BUFFER_THRESHOLD } from '../constants';
+import { Word, WordStat, Language, TestHistory } from '../types';
+import { useTranslation } from 'react-i18next';
 import {
     Container,
     WordDisplay,
@@ -17,23 +18,24 @@ import {
 import Confetti from 'react-confetti';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, FireOutlined, GlobalOutlined, HistoryOutlined, LoadingOutlined, PercentageOutlined, PlayCircleOutlined, QuestionCircleOutlined, TrophyOutlined } from '@ant-design/icons';
 import TypingGuideTour from './TypingGuideTour';
+import i18n from '../language/i18n';
+
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const DURATION_OPTIONS = [
-    { value: 15, label: '15 giây' },
-    { value: 30, label: '30 giây' },
-    { value: 45, label: '45 giây' },
-    { value: 60, label: '60 giây' },
-];
+
 type TimeRange = 'last10' | 'hourly' | 'daily' | 'monthly';
 const TypingChallenge: React.FC = () => {
+    const [interfaceLanguage, setInterfaceLanguage] = useState(() => {
+        return localStorage.getItem('interfaceLanguage') || 'vi';
+    });
+    const { t, i18n } = useTranslation();
     const [bestWPM, setBestWPM] = useState(0);
     const [bestAccuracy, setBestAccuracy] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
     const [language, setLanguage] = useState<Language>(() => {
         const savedLanguage = localStorage.getItem('language');
-        return savedLanguage ? (savedLanguage as Language) : 'vietnamese'; // Giá trị mặc định
+        return savedLanguage ? (savedLanguage as Language) : 'vi'; // Giá trị mặc định
     });
     const [selectedDuration, setSelectedDuration] = useState(() => {
         const savedDuration = localStorage.getItem('duration');
@@ -59,6 +61,12 @@ const TypingChallenge: React.FC = () => {
         width: window.innerWidth,
         height: window.innerHeight
     });
+    const DURATION_OPTIONS = [
+        { value: 15, label: t('duration.seconds', { count: 15 }) },
+        { value: 30, label: t('duration.seconds', { count: 30 }) },
+        { value: 45, label: t('duration.seconds', { count: 45 }) },
+        { value: 60, label: t('duration.seconds', { count: 60 }) },
+    ];
     useEffect(() => {
         const handleResize = () => {
             setWindowSize({
@@ -111,10 +119,13 @@ const TypingChallenge: React.FC = () => {
         setHasStartedTyping(false);
         setInput('');
         setCurrentIndex(0);
-        setWords(generateMoreWords());
         setWordStats({});
         setHasRecordedResult(false);
     }, [selectedDuration]);
+    useEffect(() => {
+        // Initialize words when component mounts
+        setWords(generateMoreWords());
+    }, []);
     const calculateWPM = useCallback(() => {
         const timeElapsed = selectedDuration - timeLeft;
         if (timeElapsed <= 0 || correctWords <= 0) return 0;
@@ -136,6 +147,11 @@ const TypingChallenge: React.FC = () => {
     }, [isRunning]);
     const generateMoreWords = useCallback(() => {
         const wordList = WORD_BANKS[language];
+        if (!wordList) {
+            console.error(`No word list found for language: ${language}`);
+            return Array(30).fill({ text: 'error', status: 'waiting' as const });
+        }
+
         const newWords: Word[] = [];
         for (let i = 0; i < 30; i++) {
             const randomIndex = Math.floor(Math.random() * wordList.length);
@@ -260,7 +276,17 @@ const TypingChallenge: React.FC = () => {
     //     const end = Math.min(words.length, currentIndex + VISIBLE_WORDS_AHEAD);
     //     return words.slice(start, end);
     // };
-
+    const handleLanguageChange = (value: Language) => {
+        setLanguage(value);
+        setInterfaceLanguage(value);
+        localStorage.setItem('interfaceLanguage', value);
+        i18n.changeLanguage(value).then(() => {
+            // Optional: Add any callbacks after language change
+            console.log('Language changed successfully to:', value);
+        }).catch(err => {
+            console.error('Error changing language:', err);
+        });
+    };
     const accuracy = (correctWords + incorrectWords) > 0
         ? Math.round((correctWords / (correctWords + incorrectWords)) * 100)
         : 0;
@@ -370,10 +396,10 @@ const TypingChallenge: React.FC = () => {
             <>
                 <div style={{ marginBottom: 16 }}>
                     <Radio.Group value={timeRange} onChange={e => setTimeRange(e.target.value)}>
-                        <Radio.Button value="last10">10 lần gần nhất</Radio.Button>
-                        <Radio.Button value="hourly">24 giờ qua</Radio.Button>
-                        <Radio.Button value="daily">30 ngày qua</Radio.Button>
-                        <Radio.Button value="monthly">12 tháng qua</Radio.Button>
+                        <Radio.Button value="last10">{t('history.range.last10')}</Radio.Button>
+                        <Radio.Button value="hourly">{t('history.range.hourly')}</Radio.Button>
+                        <Radio.Button value="daily">{t('history.range.daily')}</Radio.Button>
+                        <Radio.Button value="monthly">{t('history.range.monthly')}</Radio.Button>
                     </Radio.Group>
                 </div>
                 <ResponsiveContainer width="100%" height={300}>
@@ -578,23 +604,25 @@ const TypingChallenge: React.FC = () => {
                     }}
                     bordered={false}
                 >
-                    <Title level={1}>Typing Speed Test  <Tooltip title={<span>Enter để bắt đầu <br /> Alt+R để reset</span>}>
-                        <Button type="text" shape="circle" icon={<QuestionCircleOutlined style={{ fontSize: 24 }} />} />
-                    </Tooltip></Title>
-                    <Text type="secondary">Prod by Quang Bui</Text>
+                    <Title level={1}>{t('app.title')}
+                        <Tooltip title={t('button.help')}>
+                            <Button type="text" shape="circle" icon={<QuestionCircleOutlined style={{ fontSize: 24 }} />} />
+                        </Tooltip>
+                    </Title>
+                    <Text type="secondary">{t('app.subtitle')}</Text>
                     <Divider />
 
                     <Space wrap size="large" align="center" style={{ justifyContent: 'center', width: '100%' }}>
                         <Select
                             className='language-select'
                             value={language}
-                            onChange={(value: Language) => setLanguage(value)}
+                            onChange={handleLanguageChange}
                             style={{ minWidth: 150 }}
                             disabled={isRunning}
                             suffixIcon={<GlobalOutlined />}
                         >
-                            <Option value="vietnamese">Tiếng Việt</Option>
-                            <Option value="english">English</Option>
+                            <Option value="vi">{t('language.vietnamese')}</Option>
+                            <Option value="en">{t('language.english')}</Option>
                         </Select>
 
                         <Select
@@ -618,7 +646,7 @@ const TypingChallenge: React.FC = () => {
                             disabled={isRunning}
                             icon={isRunning ? <LoadingOutlined /> : <PlayCircleOutlined />}
                         >
-                            {isRunning ? 'Đang chạy...' : 'Bắt đầu'}
+                            {isRunning ? t('button.running') : t('button.start')}
                         </Button>
 
                         <Button
@@ -626,7 +654,7 @@ const TypingChallenge: React.FC = () => {
                             onClick={() => setShowHistory(true)}
                             icon={<HistoryOutlined />}
                         >
-                            Lịch sử
+                            {t('button.history')}
                         </Button>
                     </Space>
 
@@ -634,10 +662,10 @@ const TypingChallenge: React.FC = () => {
 
                     <Space direction="vertical" align="center" className='stats'>
                         <Text strong style={{ fontSize: '20px', color: '#faad14' }}>
-                            <FireOutlined /> Kỷ lục WPM: {bestWPM}
+                            <FireOutlined /> {t('stats.bestWPM')}: {bestWPM}
                         </Text>
                         <Text strong style={{ fontSize: '20px', color: '#13c2c2' }}>
-                            <PercentageOutlined /> Kỷ lục Độ chính xác: {bestAccuracy}%
+                            <PercentageOutlined /> {t('stats.bestAccuracy')}: {bestAccuracy}%
                         </Text>
                     </Space>
                 </Card>
@@ -655,38 +683,38 @@ const TypingChallenge: React.FC = () => {
 
                 <ResponsiveStatsGrid>
                     <StatCard>
-                        <Tooltip title="Thời gian còn lại">
+                        <Tooltip title={t('stats.timeLeft')}>
                             <ClockCircleOutlined style={{ fontSize: '24px', color: '#1890ff', marginBottom: 8 }} />
                             <Title level={4}>{selectedDuration}s</Title>
-                            <Text type="secondary">Thời gian</Text>
+                            <Text type="secondary">{t('stats.timeLeft')}</Text>
                         </Tooltip>
                     </StatCard>
                     <StatCard>
-                        <Tooltip title="Số từ gõ đúng">
+                        <Tooltip title={t('stats.correctWords')}>
                             <CheckCircleOutlined style={{ fontSize: '24px', color: '#52c41a', marginBottom: 8 }} />
                             <Title level={4}>{correctWords}</Title>
-                            <Text type="secondary">Từ đúng</Text>
+                            <Text type="secondary">{t('stats.correctWords')}</Text>
                         </Tooltip>
                     </StatCard>
                     <StatCard>
-                        <Tooltip title="Số từ gõ sai">
+                        <Tooltip title={t('stats.incorrectWords')}>
                             <CloseCircleOutlined style={{ fontSize: '24px', color: '#ff4d4f', marginBottom: 8 }} />
                             <Title level={4}>{incorrectWords}</Title>
-                            <Text type="secondary">Từ sai</Text>
+                            <Text type="secondary">{t('stats.incorrectWords')}</Text>
                         </Tooltip>
                     </StatCard>
                     <StatCard>
-                        <Tooltip title="Words Per Minute">
+                        <Tooltip title={t('stats.wpm')}>
                             <FireOutlined style={{ fontSize: '24px', color: '#faad14', marginBottom: 8 }} />
                             <Title level={4}>{wpm}</Title>
-                            <Text type="secondary">WPM</Text>
+                            <Text type="secondary">{t('stats.wpm')}</Text>
                         </Tooltip>
                     </StatCard>
                     <StatCard>
-                        <Tooltip title="Tỷ lệ gõ đúng">
+                        <Tooltip title={t('stats.accuracy')}>
                             <PercentageOutlined style={{ fontSize: '24px', color: '#13c2c2', marginBottom: 8 }} />
                             <Title level={4}>{accuracy}%</Title>
-                            <Text type="secondary">Độ chính xác</Text>
+                            <Text type="secondary">{t('stats.accuracy')}</Text>
                         </Tooltip>
                     </StatCard>
                 </ResponsiveStatsGrid>
@@ -711,7 +739,7 @@ const TypingChallenge: React.FC = () => {
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         disabled={!isRunning}
-                        placeholder={isRunning ? "Alt+R để bắt đầu lại" : "Nhấn Enter hoặc 'Bắt đầu' để bắt đầu tình giờ"}
+                        placeholder={isRunning ? t('input.reset') : t('input.start')}
                         size="large"
                     />
                 </InputWrapper>
@@ -721,42 +749,47 @@ const TypingChallenge: React.FC = () => {
                 )} */}
 
                 <Modal
-                    title="Lịch sử gõ phím"
+                    title={t('history.title')}
                     open={showHistory}
                     onCancel={() => setShowHistory(false)}
                     footer={null}
                     width={800}
                 >
                     <div style={{ marginBottom: 20 }}>
-                        <Title level={4}>Biểu đồ tiến triển</Title>
+                        <Title level={4}>{t('history.chart.title')}</Title>
                         {renderHistoryChart()}
                     </div>
+
+                    {/* History range buttons */}
+
+
+                    {/* Table columns */}
                     <Table
                         dataSource={testHistory}
                         columns={[
                             {
-                                title: 'Ngày',
+                                title: t('table.date'),
                                 dataIndex: 'date',
                                 render: (date: string) => format(new Date(date), 'dd/MM/yyyy HH:mm'),
                                 sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
                             },
                             {
-                                title: 'WPM',
+                                title: t('table.wpm'),
                                 dataIndex: 'wpm',
                                 sorter: (a, b) => a.wpm - b.wpm,
                             },
                             {
-                                title: 'Độ chính xác',
+                                title: t('table.accuracy'),
                                 dataIndex: 'accuracy',
                                 render: (value: number) => `${value.toFixed(1)}%`,
                                 sorter: (a, b) => a.accuracy - b.accuracy,
                             },
                             {
-                                title: 'Ngôn ngữ',
+                                title: t('table.language'),
                                 dataIndex: 'language',
                             },
                             {
-                                title: 'Thời gian',
+                                title: t('table.duration'),
                                 dataIndex: 'duration',
                                 render: (value: number) => `${value}s`,
                             },

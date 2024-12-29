@@ -1,5 +1,5 @@
 export const WORD_BANKS = {
-    vietnamese: [
+    vi: [
         'xin', 'chào', 'cảm', 'ơn', 'tạm', 'biệt', 'tập',
         'công', 'việc', 'gia', 'đình', 'bạn', 'bè', 'thành', 'phố',
         'quê', 'hương', 'đất', 'nước', 'tương', 'lai', 'hiện', 'tại',
@@ -12,7 +12,7 @@ export const WORD_BANKS = {
         'tôn', 'giáo', 'khoa', 'kỹ', 'thuật', 'ân', 'học', 'sức',
         'khỏe', 'thương', 'mại', 'quốc', 'gia', 'không', 'được', 'trùng'
     ],
-    english: [
+    en: [
         'hello', 'thanks', 'goodbye', 'study', 'work', 'peace',
         'family', 'friends', 'city', 'hometown', 'country', 'smile',
         'future', 'present', 'past', 'success', 'happiness', 'joy',

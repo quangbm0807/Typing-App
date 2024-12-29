@@ -1,7 +1,8 @@
+export type Language = 'vi' | 'en';
+
 export interface Word {
     text: string;
     status: 'waiting' | 'current' | 'correct' | 'incorrect';
-    characters?: number;
 }
 
 export interface WordStat {
@@ -11,8 +12,6 @@ export interface WordStat {
     incorrect: number;
     accuracy: number;
 }
-
-export type Language = 'vietnamese' | 'english';
 
 export interface TestHistory {
     date: string;
