@@ -7,6 +7,7 @@ const App: React.FC = () => {
     <I18nextProvider i18n={i18n}>
       <TypingChallenge />
     </I18nextProvider>
+    // ok
   );
 };
 
